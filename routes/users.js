@@ -38,7 +38,7 @@ router.get('/', function (req, res, next) {
   // db.SaveUser(users[0]);
   // res.send(db.GetAllUsers());
   // check if user already login
-  if(typeof req.session.token !== 'undefined' && typeof req.session.userData !== 'undefined'){
+  if (typeof req.session.token !== 'undefined' && typeof req.session.userData !== 'undefined') {
     if (req.session.userData.Role === 'admin') {
       res.redirect('/users/userList/');
     } else {
@@ -54,10 +54,10 @@ router.get('/', function (req, res, next) {
 router.post('/login', function (req, res, next) {
 
   let user = db.CheckUser(req.body.username, req.body.password);
-  if(!user){
-    res.redirect("/users",{msg:"Invalid username or password."});
+  if (!user) {
+    res.redirect("/users", { msg: "Invalid username or password." });
   }
-  
+
   jwt.sign({ user: user }, sercertkey, { expiresIn: expTime }, (err, token) => {
     // res.json({
     //   token
@@ -77,9 +77,9 @@ router.post('/login', function (req, res, next) {
 // user list page
 router.get('/userList', verifyToken, (req, res) => {
   let users = db.GetAllUsers();
-  if(!users || typeof users === 'undefined')  users = [];
+  if (!users || typeof users === 'undefined') users = [];
 
-   res.render('userList',{users : users, token : req.token});
+  res.render('userList', { users: users, token: req.token });
 
 });
 
@@ -92,14 +92,14 @@ router.get('/userPage/:userId', verifyToken, (req, res) => {
   }
 });
 
-router.post('/deleteUser/:userId', verifyToken,(req,res)=>{
+router.post('/deleteUser/:userId', verifyToken, (req, res) => {
   db.DeleteUser(req.params.userId);
   res.redirect('/users/userList/')
 });
 
-router.get('/logout',verifyToken,(req,res)=>{
+router.get('/logout', verifyToken, (req, res) => {
   req.session.token = null;
-  res.redirect('/', {msg:'Logout success..'});
+  res.redirect('/', { msg: 'Logout success..' });
 })
 
 router.post('/api/posts', verifyToken, (req, res) => {
@@ -162,25 +162,11 @@ function verifyToken(req, res, next) {
   }
 }
 
-
-router.get('/dashboard/:token', function (req, res, next) {
-  res.send(req.params);
-});
-
-
-
-
-
-
-
-
-
-router.get('/Add', function (req, res, next) {
+router.get('/addUser',verifyToken, function (req, res, next) {
   res.render('addUser', { title: 'Add User' });
 });
 
-
-router.post('/upload', [
+router.post('/addUser', [
   check('primaryEmail').isEmail().withMessage('must be an email')
     .trim()
     .normalizeEmail(),
