@@ -2,12 +2,19 @@
 <html>
   <head>
     <title>{{title}}</title>
+    {{!-- <link rel='stylesheet' href='../bower_components/bootstrap/dist/css//bootstrap.min.css' />
     <link rel='stylesheet' href='/stylesheets/style.css' />
     <script src="../bower_components/jquery-validation/dist/jquery.validate.min.js" />
     <script src="../bower_components/jquery/dist/jquery.min.js" />
-    <script src="../bower_components/jquery-validation/dist/additional-methods.min.js" />
+    <script src="../bower_components/jquery-validation/dist/additional-methods.min.js" /> --}}
   </head>
   <body>
+    {{# if msg }}
+   
+          <p class="alert alert-danger">{{ msg }}</p>
+    {{/if}}
+    
     {{{body}}}
+    <input type="hidden" name="token" value="{{{token}}}" />
   </body>
 </html>

@@ -1,2 +1,18 @@
 <h1>{{title}}</h1>
 <p>Welcome to {{title}}</p>
+
+{{# if msg }}
+   
+          <p class="alert alert-danger">{{ msg }}</p>
+    
+{{/if}}
+<form method="POST" action="/users/login">
+    <label>Username/Email</label>
+    <input type="text" name="username" />
+    <br />
+    <label>Password/PhoneNo:</label>
+    <input type="text" name="password" />
+    <br />
+    <input type="submit" value="Login" />
+
+</form>

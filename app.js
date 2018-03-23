@@ -5,6 +5,8 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 const fileUpload = require('express-fileupload');
+const expressValidator = require('express-validator');
+const session = require('express-session');
 
 var index = require('./routes/index');
 var users = require('./routes/users');
@@ -21,9 +23,11 @@ app.set('view engine', 'hbs');
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+// app.use(expressValidator());
 // app.use(express.bodyParser({uploadDir:'/path/to/temporary/directory/to/store/uploaded/files'}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(session({secret: 'mohit', saveUninitialized: false, resave: false}));
 
 app.use('/', index);
 app.use('/users', users);
@@ -45,6 +49,30 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
+//https://github.com/ctavan/express-validator/issues/276
+app.use(expressValidator({
+  customValidators: {
+    isPDF: function(value, filename) {
+      var extension = (path.extname(filename)).toLowerCase();
+      return extension == '.pdf';
+    },
+    isImage: function(value, filename) {
+      var extension = (path.extname(filename)).toLowerCase();
+      switch (extension) {
+        case '.jpg':
+            return '.jpg';
+        case '.jpeg':
+            return '.jpeg';
+        case  '.png':
+            return '.png';
+        default:
+            return false;
+    }
+    }
+  }
+}));
+
 
 module.exports = app;
 

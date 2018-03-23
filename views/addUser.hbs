@@ -1,20 +1,34 @@
-
 <script>
-$("form").validate();
-</script> 
+    $("form").validate();
+</script>
 
-<form method="post" enctype="multipart/form-data" action="/users/upload">
+{{# if errors }}
+    {{# each errors }}
+          <p class="alert alert-danger">{{ this.msg }}</p>
+    {{/each}}
+{{/if}}
+<form method="post" class="form-horizontal" enctype="multipart/form-data" action="/users/upload">
 
-<h3>New Employee</h3>
-    <label>Name</label><input type="text" name="EmpName" />
-    
-    <label>Gender</label>
-    <select>
-        <option value='m'>Male</option>
-        <option  value='f'>Female</option>
-        <option  value='o'>Other</option>
-    </select>
-    
+    <h3>New Employee</h3>
+
+    <div class="form-group">
+        <label for="EmpName">Name:</label>
+        <input type="text" name="EmpName" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="pwd">Gender:</label>
+        <select name="Gender" class="form-control">
+            <option value='m'>Male</option>
+            <option value='f'>Female</option>
+            <option value='o'>Other</option>
+        </select>
+
+    </div>
+    <div class="form-group">
+        <label>Primary Email:</label>
+        <input type="email" name="txtPEmail" class="form-control" />
+    </div>
+
     <label>DOB</label>
     <input type="date" name="dob" />
 

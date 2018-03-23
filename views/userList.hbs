@@ -1,0 +1,22 @@
+<table border="1">
+    <thead>
+        <tr>
+            <td>Emp Name</td>
+            <td>Primary Email</td>
+            <td>Total Experiance</td>
+            <td></td>
+            <td></td>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each users}}
+        <tr>
+            <td>{{this.Name}}</td>
+            <td>{{this.PriEmail}}</td>
+            <td>{{this.TotalExp}}</td>
+            <td><a href="../../users/userPage/{{this.Id}}">Details</a> </td>
+            <td><a href="../../users/deleteUser/{{this.Id}}" >Delete</a></td>
+        </tr>
+        {{/each}}
+    </tbody>
+</table>
