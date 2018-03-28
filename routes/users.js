@@ -6,32 +6,13 @@ const db = require('../db/dbwrapper');
 
 const { check, validationResult } = require('express-validator/check');
 const { matchedData, sanitize } = require('express-validator/filter');
+const emailLib = require('../lib/email');
 
 const jwt = require('jsonwebtoken');
 
 const expTime = '1h';
 const sercertkey = 'sercertkey';
 
-const users = [
-  {
-    Id: 1, UserName: 'mohits', Password: 'test123', Role: 'admin',
-    Name: 'Mohit', PriEmail: 'm@m.com', SecEmail: 'm@m.com', Gender: 'male',
-    DOB: new Date('08/01/1992'), PhoneNo: '9876544565', SkillSet: 'test1,test2',
-    TotalExp: 4, PhotoPath: '', ResumePath: ''
-  },
-  {
-    Id: 2, UserName: 'mohit1', Password: 'test123', Role: 'emp',
-    Name: 'Mohit1', PriEmail: 'm@m.com', SecEmail: 'm@m.com', Gender: 'male',
-    DOB: new Date('08/01/1992'), PhoneNo: '9876544565', SkillSet: 'test1,test2',
-    TotalExp: 4, PhotoPath: '', ResumePath: ''
-  },
-  {
-    Id: 3, UserName: 'mohit2', Password: 'test123', Role: 'emp',
-    Name: 'Mohit2', PriEmail: 'm@m.com', SecEmail: 'm@m.com', Gender: 'male',
-    DOB: new Date('08/01/1992'), PhoneNo: '9876544565', SkillSet: 'test1,test2',
-    TotalExp: 4, PhotoPath: '', ResumePath: ''
-  },
-];
 
 /* GET users listing. */
 router.get('/', function (req, res, next) {
@@ -53,9 +34,13 @@ router.get('/', function (req, res, next) {
 // Check user and create token
 router.post('/login', function (req, res, next) {
 
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.mapped() });
+  }
   let user = db.CheckUser(req.body.username, req.body.password);
   if (!user) {
-    res.redirect("/users", { msg: "Invalid username or password." });
+    res.redirect("/users/");
   }
 
   jwt.sign({ user: user }, sercertkey, { expiresIn: expTime }, (err, token) => {
@@ -76,10 +61,12 @@ router.post('/login', function (req, res, next) {
 
 // user list page
 router.get('/userList', verifyToken, (req, res) => {
+  let msg = req.query.msg || '';
+
   let users = db.GetAllUsers();
   if (!users || typeof users === 'undefined') users = [];
 
-  res.render('userList', { users: users, token: req.token });
+  res.render('userList', { users: users, token: req.token, msg:msg });
 
 });
 
@@ -99,7 +86,7 @@ router.post('/deleteUser/:userId', verifyToken, (req, res) => {
 
 router.get('/logout', verifyToken, (req, res) => {
   req.session.token = null;
-  res.redirect('/', { msg: 'Logout success..' });
+  res.redirect('/users/', { msg: 'Logout success..' });
 })
 
 router.post('/api/posts', verifyToken, (req, res) => {
@@ -162,48 +149,74 @@ function verifyToken(req, res, next) {
   }
 }
 
-router.get('/addUser',verifyToken, function (req, res, next) {
+router.get('/addUser', verifyToken, function (req, res, next) {
   res.render('addUser', { title: 'Add User' });
 });
 
-router.post('/addUser', [
-  check('primaryEmail').isEmail().withMessage('must be an email')
-    .trim()
-    .normalizeEmail(),
-
-  check('EmpName').exists(),
-
-  check('phoneNumber').exists().isLength({ min: 10, max: 12 }).withMessage('phone number required.')
-    .matches(/\d/)
-
-], function (req, res, next) {
+router.post('/addUser',verifyToken, function (req, res, next) {
   console.log(req);
+  let errors = [];
   if (!req.files)
     return res.status(400).send('No files were uploaded.');
-
-  // req.checkBody('EmpName').notEmpty().withMessage("Field requiredd.");
-  // req.checkBody('txtPEmail').isEmail().withMessage("This should be proper email.");
-
-  // req.checkBody('imageFile', 'Length should not more than 100Kb').custom((value, { req }) => req.files.imageFile.data.length / 1000 <= 100);
-
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(422).json({ errors: errors.mapped() });
-  }
+  if (!req.files.imageFile)
+    errors.push("Please upload image file");
+  if (!req.files.pdfFile)
+    errors.push("Please upload pdf file");
 
   let data = matchedData(req);
   console.log(data);
-  let sampleFile = req.files.imageFile;
   // Use the mv() method to place the file somewhere on your server
-  let path = __dirname + '\\..\\uploads\\' + sampleFile.name;
+  let imageFile = req.files.imageFile;
+  let pdfFile = req.files.pdfFile;
+  let imgPath ='';
+  let pdfPath ='';
 
-  console.log(path);
-  sampleFile.mv(path, function (err) {
-    if (err)
-      return res.status(500).send(err);
+  if (typeof imageFile !== 'undefined' && typeof pdfFile !== 'undefined') {
+    imgPath = __dirname + '\\..\\uploads\\' + new Date().getTime().toString() + '_' + imageFile.name;
+    pdfPath = __dirname + '\\..\\uploads\\' + new Date().getTime().toString() + '_' + pdfFile.name;
+    console.log(imgPath);
+    imageFile.mv(imgPath, function (err) {
+      if (err)
+        errors.push("Error in image file upload, " + err);
+    });
+    pdfFile.mv(pdfPath, function (err) {
+      if (err)
+        errors.push("Error in pdf file upload, " + err);
+    });
+  }
+  if (errors.length > 0)
+    return res.render('addUser', { title: 'Add User', errors: errors })
 
-    res.send('File uploaded!');
-  });
+  let fields = req.body;
+  user = {
+    Id: 0,
+    UserName: fields.username,
+    Password: fields.password, Role: 'emp',
+    Name: fields.fullName,
+    PriEmail: fields.priEmail, SecEmail: fields.secEmail, Gender: fields.gender,
+    DOB: new Date(fields.dob),
+    PhoneNo: fields.phoneno, SkillSet: fields.skillSet,
+    TotalExp: fields.totalExp, PhotoPath: imgPath, ResumePath: pdfPath
+  };
+
+  
+  let result = db.SaveUser(user);
+
+  switch (result) {
+    case -1:
+      errors.push('Username already exists.');
+      return res.render('addUser', { title: 'Add User', errors: errors })
+      break;
+    case 0:
+      errors.push('some error occur, user not saved.');
+      return res.render('addUser', { title: 'Add User', errors: errors })
+      break;
+  }
+  
+  emailLib.sendRegistrationMail(user.PriEmail, user.UserName, user.Password);
+  var string = encodeURIComponent('User added successfully.');
+  res.redirect('/users/userList/?msg=' + string);
+  
 });
 
 module.exports = router;

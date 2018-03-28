@@ -4,45 +4,56 @@
 
 {{# if errors }}
     {{# each errors }}
-          <p class="alert alert-danger">{{ this.msg }}</p>
+          <p class="alert alert-danger">{{ this }}</p>
     {{/each}}
 {{/if}}
-<form method="post" class="form-horizontal" enctype="multipart/form-data" action="/users/upload">
+<br />
+<form method="post" class="form-horizontal" enctype="multipart/form-data" action="/users/addUser">
 
     <h3>New Employee</h3>
 
-    <div class="form-group">
-        <label for="EmpName">Name:</label>
-        <input type="text" name="EmpName" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label for="pwd">Gender:</label>
-        <select name="Gender" class="form-control">
-            <option value='m'>Male</option>
-            <option value='f'>Female</option>
-            <option value='o'>Other</option>
-        </select>
+    <label>Username</label>
+    <input type="text" name="username" />
 
-    </div>
-    <div class="form-group">
-        <label>Primary Email:</label>
-        <input type="email" name="txtPEmail" class="form-control" />
-    </div>
+    <label>Password</label>
+    <input type="password" name="password" />
 
-    <label>DOB</label>
-    <input type="date" name="dob" />
+    <label for="">Confirm Password</label>
+    <input type="password" name="confirmPassword" />
 
-    <label>Primary Email</label>
-    <input type="email" value="primaryEmail" />
+    <label>Full Name</label>
+    <input type="text" name="fullName" />
+
+    <label for="">Primary Email</label>
+    <input type="email" name="priEmail" />
 
     <label>Secondary Email</label>
-    <input type="email" value="secondaryEmail" />
+    <input type="email" name="secEmail" />
 
-    <label>Phone Number</label>
-    <input type="number" value="phoneNumber" />
+    <label>Gender</label>
+    <select name="gender">
+        <option value="male">male</option>
+        <option value="female">female</option>
+        <option value="other">other</option>
+    </select>
 
+    <label for="">DOB</label>
+    <input type="date" name="dob" id="dob">
 
+    <label for="">Phone number</label>
+    <input type="number" name="phoneno" id="phoneno">
 
+    <label for="">Skill Set (seperated by comma)</label>
+    <input type="text" name="skillSet" id="skillSet">
+
+    <label for="">Total Exp.</label>
+    <input type="number" name="totalExp" id="totalExp">
+    
+    <label>Upload Image file</label>
     <input type="file" name="imageFile">
+
+    <label>upload pdf file</label>
+    <input type="file" name="pdfFile">
+    
     <input type="submit" value="Submit">
 </form>
